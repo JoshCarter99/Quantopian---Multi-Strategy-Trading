@@ -1,0 +1,79 @@
+#adding in variance calc.
+
+# Moving average comparison
+
+import pandas as pd
+
+def initialize(context):
+    
+    context.current = 'AAPL'
+    
+    set_benchmark(sid(24))
+    context.AAPL = sid(24)
+    context.AMZN = sid(16841)
+    
+    schedule_function(ma_crossover_handling,
+                      date_rules.every_day(),
+                      time_rules.market_open(hours=1))
+
+    
+def ma_crossover_handling(context,data):
+
+    if context.current == 'AAPL':
+        stock = data.history(context.AAPL,'price',2,'1d')
+        last_day_result = stock[1]-stock[0]  
+    
+        p_value = last_day_result/context.aapl_std
+        
+        if p_value < -1.96:
+            log.info('switch1')
+            context.current='AMZN'
+            
+    elif context.current == 'AMZN':
+        stock = data.history(context.AMZN,'price',2,'1d')
+        last_day_result = stock[1]-stock[0] 
+    
+        p_value = last_day_result/context.amzn_std
+        
+        if p_value < -1.96:
+            log.info('switch2')
+            context.current='AAPL'
+                    
+    log.info(context.current)  
+    
+    if context.current == 'AAPL':
+        hist = data.history(context.AAPL,'price',50,'1d')
+        sma_50 = hist.mean()
+        sma_20 = hist[-20:].mean()
+    
+        open_orders = get_open_orders()
+    
+        if context.AAPL not in open_orders:
+            if sma_50 > sma_20:
+                order_target_percent(context.AAPL,1)
+            elif sma_20 > sma_50:
+                order_target_percent(context.AAPL,-1)
+            
+    elif context.current == 'AMAZ':
+        hist = data.history(context.AMZN,'price',50,'1d')
+        sma_50 = hist.mean()
+        sma_20 = hist[-20:].mean()
+    
+        open_orders = get_open_orders()
+    
+        if context.AMZN not in open_orders:
+            if sma_50 > sma_20:
+                order_target_percent(context.AMZN,1)
+            elif sma_20 > sma_50:
+                order_target_percent(context.AMZN,-1)
+    
+    
+    
+def before_trading_start(context, data):
+    
+    log.info('hello')
+    aapl_hist = data.history(context.AAPL,'price',15,'1d')
+    amzn_hist = data.history(context.AMZN,'price',15,'1d')
+    
+    context.aapl_std = aapl_hist.std()
+    context.amzn_std = amzn_hist.std()
