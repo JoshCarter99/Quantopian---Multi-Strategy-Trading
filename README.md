@@ -21,6 +21,9 @@ The project simply runs one strategy, in this case just moving average crossover
 
 - We have considered the price of swapping between strategies, and so have made it so the program can only change strategies at most once a day.
 
+- The alpha gen relies of the project relies on the alpha gen of the strategies used, so just increases the alpha gen of already used strategies
+
 ## What's next for Multi Strategy Trading
 
 This project has a lot of potential. The next steps would include building it with more advanced strategies; a better way to evaluate how a strategy is performing; more strategies to swap between; and to allow for a weighting between each strategy, rather than just stopping one and starting another. 
+
